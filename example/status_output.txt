@@ -1,0 +1,21 @@
+
+The UPS information shows as following:
+
+	Properties:
+		Model Name................... CP1500AVRLCDa
+		Firmware Number.............. CTHFU2010324
+		Rating Voltage............... 120 V
+		Rating Power................. 900 Watt(1500 VA)
+
+	Current UPS status:
+		State........................ Normal
+		Power Supply by.............. Utility Power
+		Utility Voltage.............. 117 V
+		Output Voltage............... 117 V
+		Battery Capacity............. 100 %
+		Remaining Runtime............ 18 min.
+		Load......................... 324 Watt(36 %)
+		Line Interaction............. None
+		Test Result.................. Unknown
+		Last Power Event............. Blackout at 2018/07/06 07:44:11 for 24 sec.
+
