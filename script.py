@@ -11,6 +11,17 @@ import json
 import socket
 import datetime
 import pdb
+import subprocess
+import influxdb
+
+
+def run_status_cmd(timeout=None):
+    """
+    Runs the status command and returns the output as a string.
+    """
+    command = subprocess.run(args=["sudo", "pwrstat", "-status"], timeout=timeout, check=True, stdout=subprocess.PIPE)
+    
+    return command.stdout
 
 def extract_values_from_output(cmd_output_as_string):
     """
@@ -68,6 +79,34 @@ def parse_data_dict_for_influx(data_dictionary):
         
     return measurements_array
     
+def initialize_influx():
+    """
+    Initializes InfluxDB to receive UPS data measurements.
+    """
+    influx_client = influxdb.InfluxDBClient(host='localhost', port=8086)
+    
+    database_list = influx_client.get_list_database()
+    if all([database['name'] != 'ups' for database in database_list]):
+        print("UPS database does not yet exist -- creating one now.")
+        influx_client.create_database('ups')
+    else:
+        print("UPS database already exists.")
+        
+    influx_client.switch_database('ups')
+    
+    return influx_client
+
+
+def send_data_to_influx(influx_client, json_data_array):
+    
+    response = influx_client.write_points(json_data_array)
+    
+    while response:
+        response = influx_client.write_points(json_data_array)
+        
+    print("Stopped writing data to Influx.")
+    
+    
     
 example_input = """The UPS information shows as following:
 
@@ -90,7 +129,9 @@ example_input = """The UPS information shows as following:
 		Last Power Event............. Blackout at 2018/07/06 07:44:11 for 24 sec.
 """
 
-splitted_values = extract_values_from_output(example_input)
+command_output = run_status_cmd()
+
+splitted_values = extract_values_from_output(command_output)
 
 data_dict = convert_values_to_dict(splitted_values)
 
