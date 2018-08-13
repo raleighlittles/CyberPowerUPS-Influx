@@ -21,6 +21,8 @@ It also requires:
 
 * The host machine running CyberPower's [PowerPanel Personal - Linux](https://www.cyberpowersystems.com/product/software/powerpanel-for-linux/) software. *Windows support will be added at a future time.*
 
+* The host machine has Python 3.5 (at minimum) installed.
+
 If all of the requirements above are met, run the command in the `example/input.txt` file and check that your system's output is similar to the output stored in the `output.txt` file.
 
 
@@ -30,6 +32,7 @@ To run the script, do:
 ```bash
 python3 script.py
 ```
+Make sure you have installed [InfluxDB's Python library](https://pypi.org/project/influxdb/) from here.
 
 For now, this script has to be saved and ran on the machine that is connected to the UPS. 
 
