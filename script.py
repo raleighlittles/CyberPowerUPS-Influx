@@ -26,8 +26,7 @@ def extract_values_from_output(cmd_output_as_string):
     """
     Given the raw text output of the UPS info command, this function parses it into a dictionary.
     """
-    
-    #regex_to_match = r"['.']{2,}"
+
     
     # filter out newlines, tabs, and split on more than 2 periods at a time
     regex_to_match = r"['.'|\n|\t]{2,}|"
@@ -57,7 +56,8 @@ def convert_values_to_dict(data_as_list):
         
 def parse_load_readings(load_string):
     """
-    Load string has the form: <X> Watt (Y%) which needs to be converted to a list [X, Y]
+    Load string has the form: "<X> Watt (Y%)" which needs to be converted to a list [X, Y]
+    where X is the absolute/raw Load value and Y is the percentage value, relative to the maximum of your UPS outputs.
     """
     
     parsed_load_readings = list(filter(None, [re.sub(r"\D", "", string) for string in load_string.split()]))
@@ -87,6 +87,7 @@ def parse_data_dict_for_influx(data_dictionary):
         
         measurement_dict['time'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         
+        # grafana will only let you use the "graph panel" charts with numeric types, not strings
         numeric_only_keys = ['Utility Voltage', 'Output Voltage', 'Battery Capacity', 'Remaining Runtime']
         
         if key in numeric_only_keys:
@@ -131,10 +132,13 @@ def initialize_influx():
 
 
 def send_data_to_influx(influx_client, json_data_array):
+    """
+    Uses the InfluxDB Python API to send data.
+    """
     influx_client.switch_database('ups')
-    response = influx_client.write_points(json_data_array)
+    bool_response = influx_client.write_points(json_data_array)
     
-    return response
+    return bool_response
     
     
     
@@ -159,6 +163,7 @@ example_input = """The UPS information shows as following:
 		Last Power Event............. Blackout at 2018/07/06 07:44:11 for 24 sec.
 """
 
+# You can use this to test your InfluxDB/Grafana connection. Comes from: https://www.influxdata.com/blog/getting-started-python-influxdb/
 sample_input_json_body = [
     {
         "measurement": "brushEvents",
