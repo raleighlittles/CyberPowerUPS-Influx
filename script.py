@@ -7,21 +7,20 @@ Created on Sun Aug  5 16:01:51 2018
 """
 
 import re
-import json
 import socket
 import datetime
 import pdb
 import subprocess
 import influxdb
-
+import time
 
 def run_status_cmd(timeout=None):
     """
-    Runs the status command and returns the output as a string.
+    Runs the command to retrieve UPS status information and returns the output as a string.
     """
     command = subprocess.run(args=["sudo", "pwrstat", "-status"], timeout=timeout, check=True, stdout=subprocess.PIPE)
     
-    return command.stdout
+    return (command.stdout).decode('utf-8')
 
 def extract_values_from_output(cmd_output_as_string):
     """
@@ -56,6 +55,19 @@ def convert_values_to_dict(data_as_list):
         
     return data_dictionary
         
+def parse_load_readings(load_string):
+    """
+    Load string has the form: <X> Watt (Y%) which needs to be converted to a list [X, Y]
+    """
+    
+    parsed_load_readings = list(filter(None, [re.sub(r"\D", "", string) for string in load_string.split()]))
+    
+    if len(parsed_load_readings) == 2:
+        return parsed_load_readings
+    
+    else:
+        raise ValueError("Unable to parse load reading string: {0}".format(load_string))
+    
 
 def parse_data_dict_for_influx(data_dictionary):
     """
@@ -66,12 +78,33 @@ def parse_data_dict_for_influx(data_dictionary):
     measurements_array = []
     for key, value in data_dictionary.items():
         measurement_dict = {}
-        measurement_dict['measurement'] = key
+        
         measurement_dict['tags'] = {
                 "host": socket.gethostname()
                 }
-        measurement_dict['time'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-        measurement_dict['fields'] = {
+        
+        measurement_dict['measurement'] = key
+        
+        measurement_dict['time'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        
+        numeric_only_keys = ['Utility Voltage', 'Output Voltage', 'Battery Capacity', 'Remaining Runtime']
+        
+        if key in numeric_only_keys:
+            value = re.sub('[^0-9]', '', value)
+            measurement_dict['fields'] = {
+                    'value': int(value)
+                    }
+            
+        elif key == 'Load':
+            load_raw, load_pct = tuple(parse_load_readings(value))
+            measurement_dict['fields'] = {
+                    'value_raw': int(load_raw),
+                    'value_pct': int(load_pct)
+                    }
+            
+            
+        else:    
+            measurement_dict['fields'] = {
                     "value": value
                 }
         
@@ -87,24 +120,21 @@ def initialize_influx():
     
     database_list = influx_client.get_list_database()
     if all([database['name'] != 'ups' for database in database_list]):
-        print("UPS database does not yet exist -- creating one now.")
+        #print("UPS database does not yet exist -- creating one now.")
         influx_client.create_database('ups')
     else:
-        print("UPS database already exists.")
+        #print("UPS database already exists.")
+        pass
         
-    influx_client.switch_database('ups')
     
     return influx_client
 
 
 def send_data_to_influx(influx_client, json_data_array):
-    
+    influx_client.switch_database('ups')
     response = influx_client.write_points(json_data_array)
     
-    while response:
-        response = influx_client.write_points(json_data_array)
-        
-    print("Stopped writing data to Influx.")
+    return response
     
     
     
@@ -129,10 +159,62 @@ example_input = """The UPS information shows as following:
 		Last Power Event............. Blackout at 2018/07/06 07:44:11 for 24 sec.
 """
 
-command_output = run_status_cmd()
+sample_input_json_body = [
+    {
+        "measurement": "brushEvents",
+        "tags": {
+            "user": "Carol",
+            "brushId": "6c89f539-71c6-490d-a28d-6c5d84c0ee2f"
+        },
+        "time": "2018-03-28T8:01:00Z",
+        "fields": {
+            "duration": 127
+        }
+    },
+    {
+        "measurement": "brushEvents",
+        "tags": {
+            "user": "Carol",
+            "brushId": "6c89f539-71c6-490d-a28d-6c5d84c0ee2f"
+        },
+        "time": "2018-03-29T8:04:00Z",
+        "fields": {
+            "duration": 132
+        }
+    },
+    {
+        "measurement": "brushEvents",
+        "tags": {
+            "user": "Carol",
+            "brushId": "6c89f539-71c6-490d-a28d-6c5d84c0ee2f"
+        },
+        "time": "2018-03-30T8:02:00Z",
+        "fields": {
+            "duration": 129
+        }
+    }
+]
 
-splitted_values = extract_values_from_output(command_output)
+if __name__ == '__main__':
+    while True:
+        command_output = run_status_cmd()
+        
+        splitted_values = extract_values_from_output(command_output)
+        
+        data_dict = convert_values_to_dict(splitted_values)
+        
+        influx_ready_array = parse_data_dict_for_influx(data_dict)
+        
 
-data_dict = convert_values_to_dict(splitted_values)
+        influx_client = initialize_influx()
+        
+        resp = send_data_to_influx(influx_client, influx_ready_array)
+        #resp = send_data_to_influx(influx_client, sample_input_json_body)
+        
+        time.sleep(1)
+    
 
-influx_ready_array = parse_data_dict_for_influx(data_dict)
+
+
+
+
