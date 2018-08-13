@@ -1,1 +1,1 @@
-sudo pwrstat -status | grep Load
+sudo pwrstat -status

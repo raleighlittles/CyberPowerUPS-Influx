@@ -2,7 +2,7 @@
 
 **A short script to push the status information from a compatible\* UPS into [InfluxDB](https://www.influxdata.com/).**
 
-# Setup
+# Setup/Compatiblity
 
 This currently works on any UPS that is one of the following:
 
@@ -21,11 +21,21 @@ It also requires:
 
 * The host machine running CyberPower's [PowerPanel Personal - Linux](https://www.cyberpowersystems.com/product/software/powerpanel-for-linux/) software. *Windows support will be added at a future time.*
 
-Finally, *the script must be run on the aforementioned host machine,with sudo privileges.*
+If all of the requirements above are met, run the command in the `example/input.txt` file and check that your system's output is similar to the output stored in the `output.txt` file.
+
+
+# Usage
+To run the script, do:
 
 ```bash
-sudo python3 script.py
+python3 script.py
 ```
+
+For now, this script has to be saved and ran on the machine that is connected to the UPS. 
+
+## Admin access
+If you require `sudo` access to run the UPS status command, then you need to run `script.py` with administrator access as well.
+
 
 # Grafana integration
 
