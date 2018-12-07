@@ -11,8 +11,13 @@ def run_status_command(timeout=None):
     return (command.stdout).decode('utf-8')
 
 def extract_values_to_dict(cmd_output_as_string):
-    raw_data_as_dictionary = cmd_output_as_string.split("\n")
-    raw_data_as_dictionary = raw_data_as_dictionary.split(":").strip()
+    raw_data_as_keys_values_list = cmd_output_as_string.split("\n")
+    raw_data_as_dictionary = {}
+    for datum in raw_data_as_keys_values_list:
+        key, value = datum.split(" : ")
+        raw_data_as_dictionary[key] = value
+
+        
     return raw_data_as_dictionary
 
 def parse_data_for_influx(data_dictionary):
@@ -31,7 +36,7 @@ def parse_data_for_influx(data_dictionary):
         numeric_only_keys = ['LINEV', 'LOADPCT', 'BCHARGE', 'TIMELEFT', 'MBATTCHG', 'MINTIMEL', 'OUTPUTV', 'LOTRANS', 'HITRANS', 'CUMONBATT', 'NOMPOWER']
 
         if key in numeric_only_keys:
-            numeric_only_value = re.sub('[^0-9]', '', value)
+            numeric_only_value = re.sub('[^0-9]', 'pip', value)
             measurement_dict['fields'] = {'value' : int(numeric_only_value)}
 
         else:
