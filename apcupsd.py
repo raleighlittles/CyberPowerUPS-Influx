@@ -1,3 +1,4 @@
+import pdb
 import subprocess
 import socket
 import re
@@ -14,8 +15,9 @@ def extract_values_to_dict(cmd_output_as_string):
     raw_data_as_keys_values_list = cmd_output_as_string.split("\n")
     raw_data_as_dictionary = {}
     for datum in raw_data_as_keys_values_list:
-        key, value = datum.split(":")
-        raw_data_as_dictionary[key.strip()] = value.strip()
+        if len( datum.split(" : ") ) == 2:
+           key, value = datum.split(" : ")
+       	   raw_data_as_dictionary[key.strip()] = value.strip()
 
 
     return raw_data_as_dictionary
@@ -36,14 +38,13 @@ def parse_data_for_influx(data_dictionary):
         numeric_only_keys = ['LINEV', 'LOADPCT', 'BCHARGE', 'TIMELEFT', 'MBATTCHG', 'MINTIMEL', 'OUTPUTV', 'LOTRANS', 'HITRANS', 'CUMONBATT', 'NOMPOWER']
 
         if key in numeric_only_keys:
-            numeric_only_value = re.sub('[^0-9]', 'pip', value)
-            measurement_dict['fields'] = {'value' : int(numeric_only_value)}
+            numeric_only_value = re.sub('[^0-9]', '', value)
+            measurement_dict['fields'] = {'value' : int(numeric_only_value) }
 
         else:
-            measurement_dict['fields'] = {"value" : value}
+            measurement_dict['fields'] = {"value" : value }
 
         measurements_array_event.append(measurement_dict)
-
 
     return measurements_array_event
 
