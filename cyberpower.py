@@ -15,12 +15,15 @@ import influxdb
 import time
 
 
-def run_status_cmd(timeout=None):
+def run_status_cmd(command_source, timeout=None):
     """
     Runs the command to retrieve UPS status information and returns the output as a string.
     """
+    args = ["sudo", "pwrstat", "-status"]
+
+
     command = subprocess.run(
-        args=["sudo", "pwrstat", "-status"],
+        args=args,
         timeout=timeout,
         check=True,
         stdout=subprocess.PIPE)
@@ -32,6 +35,8 @@ def extract_values_from_output(cmd_output_as_string):
     """
     Given the raw text output of the UPS info command, this function parses it into a dictionary.
     """
+
+    # if not, assume it was from pwrstat program
 
     # filter out newlines, tabs, and split on more than 2 periods at a time
     regex_to_match = r"['.'|\n|\t]{2,}|"
@@ -61,7 +66,7 @@ def convert_values_to_dict(data_as_list):
     return data_dictionary
 
 
-def parse_load_readings(load_string):
+def parse_cyberpower_load_readings(load_string):
     """
     Load string has the form: "<X> Watt (Y%)" which needs to be converted to a list [X, Y]
     where X is the absolute/raw Load value and Y is the percentage value, relative to the maximum of your UPS outputs.
@@ -77,6 +82,7 @@ def parse_load_readings(load_string):
     else:
         raise ValueError(
             "Unable to parse load reading string: {0}".format(load_string))
+
 
 
 def parse_data_dict_for_influx(data_dictionary):
@@ -204,7 +210,7 @@ sample_input_json_body = [{
 
 if __name__ == '__main__':
     while True:
-        command_output = run_status_cmd()
+        command_output = run_status_cmd("apcupsd")
 
         splitted_values = extract_values_from_output(command_output)
 
