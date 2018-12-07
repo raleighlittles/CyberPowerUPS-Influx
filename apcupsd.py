@@ -14,10 +14,10 @@ def extract_values_to_dict(cmd_output_as_string):
     raw_data_as_keys_values_list = cmd_output_as_string.split("\n")
     raw_data_as_dictionary = {}
     for datum in raw_data_as_keys_values_list:
-        key, value = datum.split(" : ")
-        raw_data_as_dictionary[key] = value
+        key, value = datum.split(":")
+        raw_data_as_dictionary[key.strip()] = value.strip()
 
-        
+
     return raw_data_as_dictionary
 
 def parse_data_for_influx(data_dictionary):
