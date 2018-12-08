@@ -12,7 +12,7 @@ def initialize_influx():
         print("UPS database does not yet exist -- creating one now.")
         influx_client.create_database('ups')
     else:
-        print("UPS database already exists.")
+        #print("UPS database already exists.")
         pass
 
     return influx_client
