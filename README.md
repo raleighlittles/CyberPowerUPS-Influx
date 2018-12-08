@@ -4,6 +4,8 @@
 
 # Setup/Compatiblity
 
+## Hardware
+
 This currently works on any UPS that is one of the following:
 
 | Brand      | Model Name   | Capacity (Watts) |
@@ -15,31 +17,50 @@ This currently works on any UPS that is one of the following:
 
 [Amazon link](http://a.co/aq341qo)
 
-It also requires:
+The UPS must be connected (via USB Type B) to a host machine.
 
-* The UPS connected (via USB Type B) to a host machine
+## Software
 
-* The host machine running CyberPower's [PowerPanel Personal - Linux](https://www.cyberpowersystems.com/product/software/powerpanel-for-linux/) software. *Windows support will be added at a future time.*
+There's currently two supported ways of interfacing with your UPS through this software (more may be added in the future):
 
-* The host machine has Python 3.5 (at minimum) installed.
+* Using CyberPower's [PowerPanel Personal - Linux](https://www.cyberpowersystems.com/product/software/powerpanel-for-linux/) software. 
 
-If all of the requirements above are met, run the command in the `example/input.txt` file and check that your system's output is similar to the output stored in the `output.txt` file.
+* Using [APC UPS Daemon](http://www.apcupsd.org/) (apcupsd)
 
+
+Before running this script, you must also have InfluxDB already installed -- downloads are available at: https://portal.influxdata.com/downloads
 
 # Usage
-To run the script, do:
+
+First install the Python-InfluxDB client.
 
 ```bash
-python3 script.py
+pip install influxdb
 ```
-Make sure you have installed [InfluxDB's Python library](https://pypi.org/project/influxdb/) from here.
 
-For now, this script has to be saved and ran on the machine that is connected to the UPS. 
+Then, depending on which strategy you're using to interface with your UPS, you will either do:
 
-## Admin access
-If you require `sudo` access to run the UPS status command, then you need to run `script.py` with administrator access as well.
+```bash
+python3 apcupsd.py
+```
 
+or 
+
+```bash
+python3 cyberpower.py
+```
+
+##  Note about admin access
+Depending on how you installed the Cyberpower UPS software, you might need sudo access to actually run it. If you need sudo access to run the Cyberpower tool then you will also need to run the python script with sudo access (simply prepend 'sudo' to the command).
 
 # Grafana integration
 
-You can add this into Grafana like you would with any other new datasource. 
+For instructions on how to add your new InfluxDB source into Grafana, see here: http://docs.grafana.org/features/datasources/influxdb/
+
+
+
+# TODO 
+
+- [ ] Refactor
+- [ ] Serial connection support
+- [ ] Windows support 
