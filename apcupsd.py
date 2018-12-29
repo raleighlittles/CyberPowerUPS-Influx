@@ -79,3 +79,4 @@ if __name__ == '__main__':
             response = influx_handler.send_data_to_influx(influx_client, influx_ready_array)
         except:
             print("Exception encountered at : {0}. Retrying soon.".format(datetime.datetime.now().strftime("%Y %m %d %H %M %S")))
+            continue
