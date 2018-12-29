@@ -68,11 +68,14 @@ def parse_data_for_influx(data_dictionary):
 
 if __name__ == '__main__':
     while True:
-        command_output = run_status_command()
-        data_dictionary = extract_values_to_dict(command_output)
+        try:
+            command_output = run_status_command()
+            data_dictionary = extract_values_to_dict(command_output)
 
-        influx_ready_array = parse_data_for_influx(data_dictionary)
+            influx_ready_array = parse_data_for_influx(data_dictionary)
 
-        influx_client = influx_handler.initialize_influx()
+            influx_client = influx_handler.initialize_influx()
 
-        response = influx_handler.send_data_to_influx(influx_client, influx_ready_array)
+            response = influx_handler.send_data_to_influx(influx_client, influx_ready_array)
+        except:
+            print("Exception encountered at : {0}. Retrying soon.".format(datetime.datetime.now().strftime("%Y %m %d %H %M %S")))
