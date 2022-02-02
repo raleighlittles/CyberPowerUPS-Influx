@@ -9,7 +9,6 @@ import influx_handler
 def run_status_command(timeout=None):
     """
     Runs the designated "apcaccess" command
-    :param timeout:
     :return: The results of the command as a string
     """
     args = ["apcaccess"]
@@ -37,7 +36,6 @@ def extract_values_to_dict(cmd_output_as_string):
 def parse_data_for_influx(data_dictionary):
     """
     Converts the dictionary of data into an array of dictionaries to be passed into the python-influxdb client
-    :param data_dictionary:
     :return:
     """
     measurements_array_event = []

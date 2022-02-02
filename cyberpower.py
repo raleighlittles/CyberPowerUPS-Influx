@@ -3,7 +3,6 @@
 """
 Created on Sun Aug  5 16:01:51 2018
 
-@author: raleigh
 """
 
 import datetime
@@ -15,7 +14,7 @@ import time
 import influx_handler
 
 
-def run_status_cmd(command_source, timeout=None):
+def run_status_cmd(timeout=None):
     """
     Runs the command to retrieve UPS status information and returns the output as a string.
     """
@@ -42,7 +41,7 @@ def extract_values_from_output(cmd_output_as_string):
 
     # the entry at index 10 just says "current  ups status"
     del separated_text[10]
-    # the first 2 entries dont contain any useful data
+    # the first 2 entries don't contain any useful data
     return separated_text[2:]
 
 
@@ -125,7 +124,7 @@ def parse_data_dict_for_influx(data_dictionary):
 
 if __name__ == '__main__':
     while True:
-        command_output = run_status_cmd("apcupsd")
+        command_output = run_status_cmd()
 
         splitted_values = extract_values_from_output(command_output)
 
